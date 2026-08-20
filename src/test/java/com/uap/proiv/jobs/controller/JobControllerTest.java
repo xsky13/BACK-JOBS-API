@@ -4,8 +4,12 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uap.proiv.jobs.dto.AssignRequest;
+import com.uap.proiv.jobs.dto.Job;
 import com.uap.proiv.jobs.dto.User;
 import com.uap.proiv.jobs.dto.UserApiResponse;
+import com.uap.proiv.jobs.dto.UserJobAssigned;
 import com.uap.proiv.jobs.service.JobService;
 import com.uap.proiv.jobs.service.UserJobAssignedService;
 import com.uap.proiv.jobs.service.UserService;
@@ -42,9 +46,12 @@ public class JobControllerTest {
   private UserApiResponse userApiResponse;
   private List<User> users;
 
+  private ObjectMapper objectMapper;
+
   @BeforeEach
   void setup() {
     mockMvc = MockMvcBuilders.standaloneSetup(jobController).build();
+    objectMapper = new ObjectMapper();
 
     users = new ArrayList<>();
     User user1 = new User();
@@ -130,5 +137,43 @@ public class JobControllerTest {
 
   @Test
   @DisplayName("POST /api/job/assign - Asignar trabajo a usuario")
-  void postAssign_success() throws Exception {}
+  void postAssign_success() throws Exception {
+    AssignRequest assignRequest = new AssignRequest();
+    assignRequest.setRequestNumber(123);
+    assignRequest.setClientName("Name");
+
+    Job job1 = new Job();
+    job1.setId(1);
+    job1.setName("Manager");
+    job1.setSalary(5000);
+    job1.setHours(1000);
+    job1.setResources(3);
+
+    Job job2 = new Job();
+    job2.setId(2);
+    job2.setName("Programmer");
+    job2.setSalary(1200);
+    job2.setHours(200);
+    job2.setResources(2);
+
+    List<UserJobAssigned> userJobAssignedList = new ArrayList<>();
+    userJobAssignedList.add(new UserJobAssigned(List.of(), job1));
+    userJobAssignedList.add(new UserJobAssigned(List.of(), job2));
+
+    when(userJobAssignedService.assign()).thenReturn(userJobAssignedList);
+
+    mockMvc
+      .perform(
+        post("/api/job/assign")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(assignRequest))
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath(".Assign").isNotEmpty())
+      .andExpect(jsonPath(".Assign[0].job.name").value("Manager"))
+      .andExpect(jsonPath(".Assign[1].job.name").value("Programmer"))
+      .andExpect(jsonPath(".Assign[0].users[0].first_name").value("rick"))
+      .andExpect(jsonPath(".Request_number").value(123))
+      .andExpect(jsonPath(".Name").value("Name"));
+  }
 }
