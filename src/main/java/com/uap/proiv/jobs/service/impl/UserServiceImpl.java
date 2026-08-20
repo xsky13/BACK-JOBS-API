@@ -19,11 +19,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserApiResponse search(int page) {
+        // La respuesta conserva la información de paginado recibida desde la API de usuarios.
         return userApiRepository.getUsers(page);
     }
 
     @Override
     public User searchById(int id) {
+        // La búsqueda individual se delega al repositorio para centralizar el acceso externo.
         return userApiRepository.getUserById(id);
     }
 }

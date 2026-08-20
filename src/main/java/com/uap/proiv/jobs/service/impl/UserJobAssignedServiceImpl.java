@@ -24,16 +24,21 @@ public class UserJobAssignedServiceImpl implements UserJobAssignedService {
     }
     @Override
     public List<UserJobAssigned> assign() {
+        // Primero se reúnen los trabajos y la primera página de usuarios.
         List<Job> jobs = jobService.getAllJobs();
         UserApiResponse userApiResponse = userService.search(1);
         List<User> users = new ArrayList<>(userApiResponse.getData());
         int totalPages = userApiResponse.getTotalPages();
+
+        // Se recorren las páginas restantes para trabajar con todos los usuarios disponibles.
         while (userApiResponse != null && userApiResponse.getPage() <= totalPages){
             userApiResponse = userService.search(userApiResponse.getPage() + 1);
             if (userApiResponse != null && userApiResponse.getData() != null) {
                 users.addAll(userApiResponse.getData());
             }
         }
+
+        // El asignador trabaja con identificadores; luego se reconstruyen los usuarios completos.
         List<AssignedResponse> assigned = assignedService.create(jobs, users.stream().map(User::getId).toList());
 
         return jobs.stream().map(job -> {

@@ -19,11 +19,13 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public List<Job> getAllJobs() {
+        // El servicio mantiene el acceso a los trabajos encapsulado en el repositorio.
         return jobApiRepository.getAllJobs();
     }
 
     @Override
     public Job getJobById(int id) {
+        // La API disponible devuelve la colección completa, por eso la búsqueda se resuelve aquí.
         List<Job> jobs = jobApiRepository.getAllJobs();
         return jobs.stream().filter(job -> job.getId() == id).findFirst().orElseThrow();
     }

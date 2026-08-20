@@ -16,6 +16,7 @@ public class AssignedServiceImpl implements AssignedService {
     public List<AssignedResponse> create(List<Job> jobIds, List<Integer> userIds) {
         List<AssignedResponse> responseList = new ArrayList<>();
         jobIds.forEach(job -> {
+            // Se mezcla la lista para repartir los usuarios de forma aleatoria entre los trabajos.
             Collections.shuffle(userIds);
             for (int i=0; i<job.getResources(); i++){
                 responseList.add(new AssignedResponse(job.getId(), userIds.get(i)));
